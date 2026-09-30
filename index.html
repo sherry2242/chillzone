@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chill Zone — Smart Menu</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sm-bg:#FFE1EE;
+    --sm-card:#FFF3F8;
+    --sm-text:#4A1030;
+    --sm-text-soft:#8C5170;
+    --sm-elevated:#E8407D;
+    --sm-elevated-text:#FFF3F8;
+    --sm-accent:#E8407D;
+    --sm-border: rgba(74,16,48,0.12);
+    --sm-chip-bg: rgba(74,16,48,0.06);
+    --sm-chip-text:#8C5170;
+  }
+
+  body { background:var(--sm-bg); background-size:cover; background-position:center; background-attachment:fixed; color:var(--sm-text); font-family:'Inter',sans-serif; min-height:100vh; padding-bottom: 40px; transition: background-color .4s ease, color .4s ease; }
+  .font-display { font-family:'Baloo 2',sans-serif; font-weight:800; }
+  .font-mono { font-family:'IBM Plex Mono',monospace; }
+  .max-w { max-width: 900px; margin: 0 auto; }
+  .px { padding-left: 16px; padding-right: 16px; }
+  @media (min-width: 640px) { .px { padding-left: 24px; padding-right: 24px; } }
+
+  .text-ink { color:var(--sm-text); }
+  .text-soft { color:var(--sm-text-soft); }
+  .icon-on-elevated { color:var(--sm-elevated-text); }
+
+  header { position: sticky; top: 0; z-index: 30; background:var(--sm-bg); border-bottom: 1px solid var(--sm-border); transition: background-color .4s ease, border-color .4s ease; }
+  .header-top { padding-top: 16px; }
+
+  .search-row { display:flex; gap:10px; padding: 14px 0 4px; align-items:center; }
+  .search-input-wrap { flex:1; position:relative; }
+  .search-input-wrap i.fa-magnifying-glass { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--sm-text-soft); font-size:13px; }
+  .search-input { width:100%; padding:11px 38px 11px 36px; border-radius:999px; border:1px solid var(--sm-border); background:var(--sm-card); font-family:'Inter',sans-serif; font-size:14px; color:var(--sm-text); outline:none; transition: background-color .4s ease, border-color .4s ease, color .4s ease; }
+  .search-input:focus { border-color:var(--sm-accent); }
+  .search-input::placeholder { color:var(--sm-text-soft); }
+  .search-clear { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--sm-text-soft); display:none; }
+  .surprise-btn { display:flex; align-items:center; gap:7px; background:#FFC93C; color:#4A1030; border:none; padding:11px 16px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap; cursor:pointer; font-family:'IBM Plex Mono',monospace; letter-spacing:.02em; }
+  .surprise-btn:hover { filter:brightness(1.05); }
+
+  .view-tabs { display:flex; gap:8px; padding: 12px 0 4px; }
+  .view-tab { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:999px; border:1px solid transparent; cursor:pointer; font-size:13px; font-weight:600; font-family:'Inter',sans-serif; background:transparent; transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
+  .view-tab-active { background:var(--sm-elevated); color:var(--sm-elevated-text); }
+  .view-tab-inactive { background:transparent; color:var(--sm-text-soft); border-color:var(--sm-border); }
+
+  .pills { display:flex; gap:8px; overflow-x:auto; padding: 12px 0 18px; scrollbar-width: thin; scrollbar-color: var(--sm-elevated) transparent; }
+  .pills::-webkit-scrollbar { height:6px; }
+  .pills::-webkit-scrollbar-track { background:transparent; }
+  .pills::-webkit-scrollbar-thumb { background:var(--sm-elevated); border-radius:999px; }
+  .pill { display:flex; align-items:center; gap:6px; padding:8px 16px; border-radius:999px; white-space:nowrap; flex-shrink:0; border:none; cursor:pointer; font-family:'Inter',sans-serif; font-size:14px; font-weight:600; transition: background-color .3s ease, color .3s ease; }
+  .pill-active { background-color:var(--sm-elevated); color:var(--sm-elevated-text); }
+  .pill-inactive { background-color:var(--sm-card); color:var(--sm-text-soft); }
+  .pill-inactive:hover { filter:brightness(0.96); }
+
+  .trend-period-row { display:flex; gap:8px; padding: 12px 0 12px; }
+  .trend-period { font-family:'IBM Plex Mono',monospace; font-size:12px; padding:7px 13px; border-radius:999px; border:1px solid var(--sm-border); background:var(--sm-card); cursor:pointer; color:var(--sm-text-soft); }
+  .trend-period-active { background:#E8407D; color:#FFF3F8; border-color:#E8407D; }
+
+  main { padding: 20px 0 112px; }
+  .cat-heading { margin-bottom: 16px; }
+  .cat-heading h2 { font-size: 28px; }
+  .cat-heading p { color:var(--sm-text-soft); font-size: 14px; }
+
+  .grid { display:grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+  .card { background:var(--sm-card); border:1px solid var(--sm-border); border-radius:18px; padding:16px; position:relative; cursor:pointer; transition: transform .2s ease, box-shadow .2s ease, background-color .4s ease, border-color .4s ease; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(74,16,48,0.14); }
+  .ribbon { position:absolute; top:-8px; left:16px; background:#FFC93C; color:#4A1030; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.05em; padding: 2px 8px; border-radius:6px; }
+  .rank-badge { position:absolute; top:-10px; left:16px; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; color:#FFF3F8; background:#4A1030; }
+  .rank-badge.gold { background:#FFC93C; color:#4A1030; }
+
+  .card-body { display:flex; gap:12px; }
+  .card-info { flex:1; min-width:0; }
+  .card-info h3 { font-size:18px; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card-info .desc { color:var(--sm-text-soft); font-size:14px; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-top:2px; }
+  .tag-row { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .tag-chip { font-family:'IBM Plex Mono',monospace; font-size:10px; background:var(--sm-chip-bg); color:var(--sm-chip-text); padding:2px 8px; border-radius:999px; }
+  .trend-line { font-family:'IBM Plex Mono',monospace; font-size:11px; color:#E8407D; margin-top:6px; display:flex; align-items:center; gap:5px; }
+
+  .variant-toggle { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+  .variant-btn { flex:1; min-width:64px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:6px 6px; border-radius:8px; border:1px solid var(--sm-border); background:var(--sm-bg); color:var(--sm-text-soft); cursor:pointer; text-align:center; }
+  .variant-active { background:var(--sm-elevated) !important; color:var(--sm-elevated-text) !important; border-color:var(--sm-elevated) !important; }
+
+  .price-row { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+  .price { font-family:'IBM Plex Mono',monospace; font-size:16px; color:var(--sm-accent); font-weight:700; }
+
+  .add-btn { display:flex; align-items:center; gap:6px; background:var(--sm-elevated); color:var(--sm-elevated-text); font-size:14px; padding:7px 14px; border-radius:999px; border:none; cursor:pointer; font-weight:600; }
+  .stepper { display:flex; align-items:center; gap:2px; background:var(--sm-elevated); border-radius:999px; padding:4px; }
+  .stepper button { width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:none; border:none; color:var(--sm-elevated-text); cursor:pointer; }
+  .stepper span { font-family:'IBM Plex Mono',monospace; color:var(--sm-elevated-text); font-size:14px; width:18px; text-align:center; }
+
+  .empty-state { text-align:center; padding:56px 0; color:var(--sm-text-soft); grid-column: 1 / -1; }
+  .empty-state i { font-size:26px; margin-bottom:10px; display:block; color:var(--sm-text-soft); }
+  .empty-state p { font-size:14px; max-width:320px; margin:0 auto; }
+
+  .fab { position:fixed; bottom:20px; right:20px; z-index:40; background:#4A1030; color:#FFF3F8; border:none; border-radius:999px; padding: 12px 20px 12px 16px; display:flex; align-items:center; gap:12px; cursor:pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+  .fab .bag-wrap { position:relative; }
+  .fab .count { position:absolute; top:-10px; right:-10px; background:#FFC93C; color:#4A1030; font-family:'IBM Plex Mono',monospace; font-size:11px; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .fab .total { font-family:'IBM Plex Mono',monospace; font-size:14px; }
+
+  .backdrop { position:fixed; inset:0; background:rgba(74,16,48,0.5); z-index:45; display:none; }
+  .backdrop.show { display:block; }
+
+  .modal-wrap { position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:16px; }
+  .modal-wrap.show { display:flex; }
+  .modal { background:var(--sm-card); color:var(--sm-text); border-radius:24px; width:100%; max-width:420px; padding:24px; position:relative; max-height:88vh; overflow-y:auto; transition: background-color .4s ease, color .4s ease; }
+  .modal-close { position:absolute; top:16px; right:16px; width:32px; height:32px; border-radius:50%; background:var(--sm-bg); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--sm-text); }
+  .modal-ribbon { display:inline-block; background:#FFC93C; color:#4A1030; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.05em; padding:4px 10px; border-radius:6px; margin-bottom:14px; }
+  .modal-art-wrap { display:flex; justify-content:center; margin-bottom:16px; }
+  .modal-header h2 { font-size:24px; line-height:1.15; text-align:center; }
+  .modal-desc { font-size:14px; text-align:center; margin-top:6px; }
+  .modal-price-row { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:16px; }
+  .modal-price { font-family:'IBM Plex Mono',monospace; font-size:22px; color:var(--sm-accent); font-weight:700; }
+  .modal-add-btn { width:100%; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--sm-elevated); color:var(--sm-elevated-text); font-size:14px; padding:12px; border-radius:999px; border:none; cursor:pointer; margin-top:16px; font-weight:600; }
+  .modal-stepper { display:flex; align-items:center; justify-content:space-between; background:var(--sm-elevated); border-radius:999px; padding:8px; margin-top:16px; }
+  .modal-stepper button { width:32px; height:32px; background:none; border:none; color:var(--sm-elevated-text); cursor:pointer; }
+  .modal-stepper span { font-family:'IBM Plex Mono',monospace; color:var(--sm-elevated-text); font-size:14px; }
+
+  .drawer { position:fixed; z-index:55; right:0; top:0; bottom:0; width:100%; max-width:384px; background:#4A1030; color:#FFF3F8; transform:translateX(100%); transition: transform .3s ease-out; max-height:100vh; overflow-y:auto; }
+  .drawer.open { transform:translateX(0); }
+  @media (max-width: 639px) {
+    .drawer { left:0; right:0; top:auto; bottom:0; max-width:none; width:100%; max-height:88vh; border-radius:24px 24px 0 0; transform:translateY(100%); }
+    .drawer.open { transform:translateY(0); }
+  }
+  .drawer-inner { padding: 24px 20px 20px 20px; }
+  .drawer-head { display:flex; align-items:center; justify-content:space-between; }
+  .drawer-head h2 { font-size:22px; }
+  .drawer-close { background:none; border:none; color:#FFF3F8; cursor:pointer; }
+  .drawer-divider { border-top:1px dashed rgba(255,243,248,0.25); margin: 16px 0; }
+  .cart-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+  .cart-row .name { font-size:14px; font-weight:600; }
+  .cart-row .unit { font-family:'IBM Plex Mono',monospace; font-size:12px; color:#D9A9C0; }
+  .cart-stepper { display:flex; align-items:center; gap:2px; border:1px solid rgba(255,243,248,0.25); border-radius:999px; padding:4px; }
+  .cart-stepper button { width:26px; height:26px; background:none; border:none; color:#FFFFFF; cursor:pointer; }
+  .cart-stepper span { font-family:'IBM Plex Mono',monospace; font-size:12px; width:16px; text-align:center; color:#FFF3F8; }
+  .line-total { font-family:'IBM Plex Mono',monospace; font-size:14px; width:56px; text-align:right; }
+  .subtotal-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .subtotal-row span:first-child { font-family:'IBM Plex Mono',monospace; font-size:13px; color:#D9A9C0; }
+  .subtotal-row span:last-child { font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:700; }
+  .bill-note { font-size:12px; color:#D9A9C0; margin-bottom:16px; }
+  .send-btn { width:100%; background:#E8407D; color:#FFF3F8; font-family:'IBM Plex Mono',monospace; font-size:13px; text-transform:uppercase; letter-spacing:.05em; padding:12px; border-radius:12px; border:none; cursor:pointer; font-weight:700; }
+  .empty-cart { padding: 40px 0; text-align:center; }
+  .empty-cart i { font-size:28px; color:#D9A9C0; margin-bottom:12px; display:block; }
+  .empty-cart p { font-size:14px; color:#D9A9C0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition:none !important; animation:none !important; }
+  }
+
+.site-footer { text-align:center; padding:32px 16px 24px; } .site-footer h3 { font-size:16px; margin-bottom:6px; } .site-footer p { font-size:13px; color:var(--sm-text-soft); margin-bottom:16px; } .footer-btns { display:flex; justify-content:center; gap:16px; } .footer-btn { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; color:#fff; text-decoration:none; } .footer-btn.call { background:#4A1030; } .footer-btn.whatsapp { background:#25D366; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="max-w px">
+    <div class="header-top">
+      <h1 class="font-display" style="font-size:32px;">Chill Zone</h1>
+      <p class="font-mono text-soft" style="font-size:12px; margin-top:4px; letter-spacing:.05em;">DESSERTORIA</p>
+    </div>
+
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="searchInput" class="search-input" type="text" placeholder="Search flavours, or try 'chocolatey', 'fruity', 'best today'…" oninput="handleSearch(this.value)" />
+        <button class="search-clear" id="searchClearBtn" onclick="clearSearch()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <button class="surprise-btn" onclick="surpriseMe()"><i class="fa-solid fa-dice"></i> Surprise Me</button>
+    </div>
+
+    <div class="view-tabs" id="viewTabs"></div>
+    <div id="subNav"></div>
+  </div>
+</header>
+
+<main class="max-w px">
+  <div class="cat-heading">
+    <h2 class="font-display" id="catTitle"></h2>
+    <p id="catSub"></p>
+  </div>
+  <div class="grid" id="menuGrid"></div>
+</main>
+
+<footer class="site-footer"> <h3 class="font-display">Visit Us</h3> <p>Dss No. 4 and 5, Main Market, Rajguru Nagar, Ludhiana, Punjab — Open 12 PM to 11 PM</p> <div class="footer-btns"> <a class="footer-btn call" href="tel:+919779040005" aria-label="Call us"><i class="fa-solid fa-phone"></i></a> <a class="footer-btn whatsapp" href="https://wa.me/919779040005" target="_blank" aria-label="Message us on WhatsApp"><i class="fa-brands fa-whatsapp"></i></a> </div> </footer>
+
+<button class="fab" id="fab" style="display:none;" onclick="toggleCart(true)">
+  <div class="bag-wrap">
+    <i class="fa-solid fa-bag-shopping"></i>
+    <span class="count" id="fabCount">0</span>
+  </div>
+  <span class="total font-mono" id="fabTotal">₹0</span>
+</button>
+
+<div class="backdrop" id="modalBackdrop" onclick="closeModal()"></div>
+<div class="modal-wrap" id="modalWrap">
+  <div class="modal" id="modalContent" onclick="event.stopPropagation()"></div>
+</div>
+
+<div class="backdrop" id="cartBackdrop" onclick="toggleCart(false)"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-inner">
+    <div class="drawer-head">
+      <h2 class="font-display">Your Order</h2>
+      <button class="drawer-close" onclick="toggleCart(false)"><i class="fa-solid fa-xmark" style="font-size:18px;"></i></button>
+    </div>
+    <div class="drawer-divider"></div>
+    <div id="drawerBody"></div>
+  </div>
+</div>
+
+<script>
+  const CATEGORIES = [
+    { id: "scoops", label: "Scoops", icon: "fa-ice-cream", color: "#E8407D", bgImage: "images/scoop-bg.png" },
+    { id: "rollmeup", label: "Roll Me Up", icon: "fa-layer-group", color: "#FF8A3D", bgImage: "images/rollmeup-bg.jpg" },
+    { id: "smoothies", label: "Smoothies", icon: "fa-blender", color: "#7CB342", bgImage: "images/smoothies-bg.jpg" },
+    { id: "sundae", label: "Sundae", icon: "fa-bowl-food", color: "#17A398", bgImage: "images/sundae-bg.jpg" },
+    { id: "shakes", label: "Shakes", icon: "fa-glass-water", color: "#1E88C7", bgImage: "images/shakes-bg.jpg" },
+    { id: "desserts", label: "Desserts", icon: "fa-cake-candles", color: "#F8C8DC", bgImage: "images/desserts-bg.jpg" },
+    { id: "minipancakes", label: "Mini Pancakes", icon: "fa-record-vinyl", color: "#E8A800", bgImage: "images/minipancakes-bg.jpg" },
+    { id: "softsundae", label: "Soft Sundae", icon: "fa-cloud", color: "#F06292", bgImage: "images/softsundae-bg.jpg" },
+    { id: "nitrogensundae", label: "Nitrogen Sundae", icon: "fa-flask", color: "#5C6BC0", bgImage: "images/nitrogensundae-bg.jpg" },
+    { id: "waffles", label: "Waffles", icon: "fa-table-cells", color: "#8E4FE8", bgImage: "images/waffles-bg.jpg" },
+    { id: "mocktails", label: "Mocktails", icon: "fa-martini-glass-citrus", color: "#1FA97A", bgImage: "images/mocktails-bg.jpg" },
+    { id: "wafflesandwich", label: "Waffle Sandwich", icon: "fa-hamburger", color: "#E84C3D", bgImage: "images/wafflesandwich-bg.jpg" },
+    { id: "bobatea", label: "Boba Tea", icon: "fa-mug-saucer", color: "#A67C52", bgImage: "images/bobatea-bg.jpg" },
+    { id: "coldcoffee", label: "Cold Coffee", icon: "fa-glass-water", color: "#4A7A8C", bgImage: "images/coldcoffee-bg.jpg" },
+  ];
+
+  // One bright theme per category. Each also supports an optional background photo:
+  // set a category's "bgImage" above to a path (e.g. "images/scoops-bg.jpg") or a full https:// URL.
+  const THEMES = {
+    scoops:         { bg:"#FFE1EE", card:"#FFF3F8", text:"#4A1030", textSoft:"#8C5170", elevated:"#E8407D", elevatedText:"#FFF3F8", accent:"#E8407D", border:"rgba(74,16,48,0.12)", chipBg:"rgba(74,16,48,0.06)", chipText:"#8C5170" },
+    rollmeup:       { bg:"#FFE9CC", card:"#FFF6E8", text:"#4A2A0A", textSoft:"#8C6438", elevated:"#FF8A3D", elevatedText:"#4A2A0A", accent:"#FF8A3D", border:"rgba(74,42,10,0.14)", chipBg:"rgba(74,42,10,0.08)", chipText:"#8C6438" },
+    smoothies:      { bg:"#EAF4DA", card:"#F5FAEC", text:"#263A0F", textSoft:"#5E7A3C", elevated:"#7CB342", elevatedText:"#1B2A0A", accent:"#5E8A2E", border:"rgba(38,58,15,0.14)", chipBg:"rgba(38,58,15,0.07)", chipText:"#5E7A3C" },
+    sundae:         { bg:"#D3F1EC", card:"#E9F8F5", text:"#06332C", textSoft:"#34675F", elevated:"#17A398", elevatedText:"#E9F8F5", accent:"#128577", border:"rgba(6,51,44,0.14)", chipBg:"rgba(6,51,44,0.07)", chipText:"#34675F" },
+    shakes:         { bg:"#D6EEFF", card:"#EAF7FF", text:"#0A2C3D", textSoft:"#3E6B85", elevated:"#1E88C7", elevatedText:"#EAF7FF", accent:"#1E88C7", border:"rgba(10,44,61,0.14)", chipBg:"rgba(10,44,61,0.07)", chipText:"#3E6B85" },
+    desserts:       { bg:"#FCDDE0", card:"#FEF0F1", text:"#4A0E17", textSoft:"#8C4F58", elevated:"#E8425C", elevatedText:"#FEF0F1", accent:"#D42D48", border:"rgba(74,14,23,0.14)", chipBg:"rgba(74,14,23,0.07)", chipText:"#8C4F58" },
+    minipancakes:   { bg:"#FFF4C2", card:"#FFFBE0", text:"#4A3B00", textSoft:"#8C7A2E", elevated:"#E8A800", elevatedText:"#4A3B00", accent:"#B8860A", border:"rgba(74,59,0,0.14)", chipBg:"rgba(74,59,0,0.08)", chipText:"#8C7A2E" },
+    softsundae:     { bg:"#FDE1EA", card:"#FFF0F5", text:"#4A0F26", textSoft:"#8C4F68", elevated:"#F06292", elevatedText:"#4A0F26", accent:"#D6407A", border:"rgba(74,15,38,0.13)", chipBg:"rgba(74,15,38,0.06)", chipText:"#8C4F68" },
+    nitrogensundae: { bg:"#E1E4F7", card:"#EDEFFB", text:"#1B2050", textSoft:"#4E578C", elevated:"#5C6BC0", elevatedText:"#EDEFFB", accent:"#4A58AE", border:"rgba(27,32,80,0.14)", chipBg:"rgba(27,32,80,0.07)", chipText:"#4E578C" },
+    waffles:        { bg:"#EBDCFF", card:"#F5EBFF", text:"#2E1247", textSoft:"#6E4E8C", elevated:"#8E4FE8", elevatedText:"#F5EBFF", accent:"#8E4FE8", border:"rgba(46,18,71,0.14)", chipBg:"rgba(46,18,71,0.07)", chipText:"#6E4E8C" },
+    mocktails:      { bg:"#D6F5E3", card:"#EAFBF0", text:"#0A3D28", textSoft:"#3E8568", elevated:"#1FA97A", elevatedText:"#EAFBF0", accent:"#1FA97A", border:"rgba(10,61,40,0.14)", chipBg:"rgba(10,61,40,0.07)", chipText:"#3E8568" },
+    wafflesandwich: { bg:"#FFDAD6", card:"#FFEEEC", text:"#4A130E", textSoft:"#8C4A40", elevated:"#E84C3D", elevatedText:"#FFEEEC", accent:"#E84C3D", border:"rgba(74,19,14,0.14)", chipBg:"rgba(74,19,14,0.07)", chipText:"#8C4A40" },
+    bobatea:        { bg:"#DCEAEE", card:"#EDF5F7", text:"#12333D", textSoft:"#4A6E78", elevated:"#4A7A8C", elevatedText:"#EDF5F7", accent:"#3A6470", border:"rgba(18,51,61,0.14)", chipBg:"rgba(18,51,61,0.07)", chipText:"#4A6E78" },
+    coldcoffee:     { bg:"#E8DBC8", card:"#F7F0E4", text:"#3A2A15", textSoft:"#7A6242", elevated:"#8B5E3C", elevatedText:"#F7F0E4", accent:"#6F4526", border:"rgba(58,42,21,0.14)", chipBg:"rgba(58,42,21,0.07)", chipText:"#7A6242" },
+  };
+
+  function applyTheme(key) {
+    const t = THEMES[key] || THEMES.scoops;
+    const cat = CATEGORIES.find(c => c.id === key);
+    const root = document.documentElement.style;
+    root.setProperty("--sm-bg", t.bg);
+    root.setProperty("--sm-card", t.card);
+    root.setProperty("--sm-text", t.text);
+    root.setProperty("--sm-text-soft", t.textSoft);
+    root.setProperty("--sm-elevated", t.elevated);
+    root.setProperty("--sm-elevated-text", t.elevatedText);
+    root.setProperty("--sm-accent", t.accent);
+    root.setProperty("--sm-border", t.border);
+    root.setProperty("--sm-chip-bg", t.chipBg);
+    root.setProperty("--sm-chip-text", t.chipText);
+    if (cat && cat.bgImage) {
+      document.body.style.backgroundImage = `linear-gradient(${t.bg}CC, ${t.bg}CC), url('${cat.bgImage}')`;
+    } else {
+      document.body.style.backgroundImage = "none";
+    }
+  }
+
+  // ============================================================
+  // GOOGLE SHEET MENU SOURCE
+  // ============================================================
+  // Paste your "Publish to web" CSV link here to load the menu from a Google Sheet
+  // instead of the hardcoded list below. Leave it "" to just use the hardcoded list.
+  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSfp10We26MxaRbhCK6C2VouWEfYWPRF4bOpRTeuMH4L2cvlXoTzdhsEQRbZYfBAdGY8ZguY8YYG2QY/pub?gid=0&single=true&output=csv";
+
+  function splitCSVLine(line) {
+    const result = []; let cur = ""; let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQuotes = !inQuotes; }
+      else if (ch === "," && !inQuotes) { result.push(cur); cur = ""; }
+      else { cur += ch; }
+    }
+    result.push(cur);
+    return result.map(s => s.trim());
+  }
+
+  function parseCSV(text) {    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (lines.length < 2) return [];
+    const headers = splitCSVLine(lines[0]);
+    return lines.slice(1).map(line => {
+      const cols = splitCSVLine(line);
+      const row = {};
+      headers.forEach((h, idx) => { row[h] = cols[idx] || ""; });
+      return row;
+    });
+  }
+
+  function itemsFromRows(rows) {
+    return rows.map(r => {
+      const variants = [];
+      for (let n = 1; n <= 3; n++) {
+        const label = r["variant" + n + "_label"];
+        const price = r["variant" + n + "_price"];
+        if (label) variants.push({ label, price: parseFloat(price) || 0 });
+      }
+      const item = {
+        id: r.id,
+        category: r.category,
+        image: r.image || "",
+        name: r.name,
+        desc: r.desc || "",
+        tags: (r.tags || "").split(";").map(t => t.trim()).filter(Boolean),
+        ordersToday: parseInt(r.ordersToday, 10) || 0,
+        ordersWeek: parseInt(r.ordersWeek, 10) || 0,
+        ordersAllTime: parseInt(r.ordersAllTime, 10) || 0,
+      };
+      if (variants.length) item.variants = variants;
+      else item.price = parseFloat(r.price) || 0;
+      return item;
+    }).filter(i => i.id && i.category && i.name);
+  }
+
+  async function loadMenuFromSheet() {
+    if (!SHEET_CSV_URL) { renderAll(); return; }
+    try {
+      const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+      if (!res.ok) throw new Error("Sheet fetch failed: " + res.status);
+      const text = await res.text();
+      const rows = parseCSV(text);
+      const items = itemsFromRows(rows);
+      if (items.length > 0) ITEMS = items;
+    } catch (e) {
+      console.warn("Could not load menu from Google Sheet — using the built-in fallback menu instead.", e);
+    }
+    renderAll();
+  }
+
+  // Fallback menu — matches the real Chill Zone menu, with images pre-filled following
+  // images/{category}-{dish-name}.jpg. Used automatically if SHEET_CSV_URL above is empty
+  // or unreachable.
+  let ITEMS = [
+    { id:"sc1", category:"scoops", image:"images/scoops-regular-scoops.jpg", name:"Regular Scoops", desc:"Classic everyday flavours — vanilla, chocolate, strawberry and more.", tags:["classic","creamy"], variants:[{label:"Single",price:79},{label:"Double",price:129}], ordersToday:22, ordersWeek:150, ordersAllTime:2400 },
+    { id:"sc2", category:"scoops", image:"images/scoops-premium-scoops.jpg", name:"Premium Scoops", desc:"Richer, more indulgent flavours crafted with extra love.", tags:["indulgent","creamy"], variants:[{label:"Single",price:129},{label:"Double",price:179}], ordersToday:16, ordersWeek:105, ordersAllTime:1700 },
+    { id:"sc3", category:"scoops", image:"images/scoops-artisanal-scoops.jpg", name:"Artisanal Scoops", desc:"Small-batch, handcrafted flavours for the true ice cream connoisseur.", tags:["premium","handcrafted"], variants:[{label:"Single",price:180},{label:"Double",price:250}], ordersToday:9, ordersWeek:62, ordersAllTime:980 },
+
+    { id:"rm1", category:"rollmeup", image:"images/rollmeup-fresh-strawberry.jpg", name:"Fresh Strawberry", desc:"Fresh Strawberry ice cream rolled to order.", tags:["fruity"], price:290, ordersToday:11, ordersWeek:74, ordersAllTime:1100 },
+    { id:"rm2", category:"rollmeup", image:"images/rollmeup-alphonso-mango.jpg", name:"Alphonso Mango", desc:"Alphonso Mango ice cream rolled to order.", tags:["fruity","seasonal"], price:290, ordersToday:14, ordersWeek:90, ordersAllTime:1300 },
+    { id:"rm3", category:"rollmeup", image:"images/rollmeup-chocolate.jpg", name:"Chocolate", desc:"Chocolate ice cream rolled to order.", tags:["chocolatey"], price:290, ordersToday:13, ordersWeek:85, ordersAllTime:1250 },
+    { id:"rm4", category:"rollmeup", image:"images/rollmeup-ferrero-rocher.jpg", name:"Ferrero Rocher", desc:"Ferrero Rocher ice cream rolled to order.", tags:["chocolatey","indulgent"], price:290, ordersToday:19, ordersWeek:118, ordersAllTime:1750 },
+    { id:"rm5", category:"rollmeup", image:"images/rollmeup-oreo-lover.jpg", name:"Oreo Lover", desc:"Oreo Lover ice cream rolled to order.", tags:["chocolatey"], price:290, ordersToday:15, ordersWeek:96, ordersAllTime:1400 },
+    { id:"rm6", category:"rollmeup", image:"images/rollmeup-brownie-nutella.jpg", name:"Brownie Nutella", desc:"Brownie Nutella ice cream rolled to order.", tags:["chocolatey","indulgent"], price:290, ordersToday:17, ordersWeek:108, ordersAllTime:1580 },
+    { id:"rm7", category:"rollmeup", image:"images/rollmeup-crunchy-kitkat.jpg", name:"Crunchy Kitkat", desc:"Crunchy Kitkat ice cream rolled to order.", tags:["chocolatey","crunchy"], price:290, ordersToday:12, ordersWeek:78, ordersAllTime:1150 },
+    { id:"rm8", category:"rollmeup", image:"images/rollmeup-mix-fruit-dairymilk.jpg", name:"Mix Fruit Dairymilk", desc:"Mix Fruit Dairymilk ice cream rolled to order.", tags:["fruity","chocolatey"], price:290, ordersToday:8, ordersWeek:52, ordersAllTime:760 },
+    { id:"rm9", category:"rollmeup", image:"images/rollmeup-kitkat-dairymilk.jpg", name:"Kitkat Dairymilk", desc:"Kitkat Dairymilk ice cream rolled to order.", tags:["chocolatey"], price:290, ordersToday:10, ordersWeek:64, ordersAllTime:940 },
+    { id:"rm10", category:"rollmeup", image:"images/rollmeup-redvelvet.jpg", name:"Redvelvet", desc:"Red Velvet ice cream rolled to order.", tags:["classic"], price:290, ordersToday:9, ordersWeek:58, ordersAllTime:850 },
+    { id:"rm11", category:"rollmeup", image:"images/rollmeup-paan-e-shahi.jpg", name:"Paan-E-Shahi", desc:"Paan-E-Shahi ice cream rolled to order.", tags:["classic","unique"], price:290, ordersToday:7, ordersWeek:46, ordersAllTime:680 },
+    { id:"rm12", category:"rollmeup", image:"images/rollmeup-kinder-bueno.jpg", name:"Kinder Bueno", desc:"Kinder Bueno ice cream rolled to order.", tags:["chocolatey","indulgent"], price:320, ordersToday:18, ordersWeek:112, ordersAllTime:1650 },
+
+    { id:"sm1", category:"smoothies", image:"images/smoothies-strawberry.jpg", name:"Strawberry", desc:"Strawberry smoothie, blended fresh and chilled.", tags:["fruity","refreshing"], price:159, ordersToday:14, ordersWeek:90, ordersAllTime:1300 },
+    { id:"sm2", category:"smoothies", image:"images/smoothies-mango-hurricane.jpg", name:"Mango Hurricane", desc:"Mango Hurricane smoothie, blended fresh and chilled.", tags:["fruity","refreshing"], price:159, ordersToday:16, ordersWeek:100, ordersAllTime:1450 },
+    { id:"sm3", category:"smoothies", image:"images/smoothies-pineapple.jpg", name:"Pineapple", desc:"Pineapple smoothie, blended fresh and chilled.", tags:["fruity","refreshing"], price:159, ordersToday:11, ordersWeek:70, ordersAllTime:1020 },
+
+    { id:"su1", category:"sundae", image:"images/sundae-pineapple-sundae.jpg", name:"Pineapple Sundae", desc:"Pineapple sundae, layered and topped with love.", tags:["fruity"], price:220, ordersToday:9, ordersWeek:58, ordersAllTime:860 },
+    { id:"su2", category:"sundae", image:"images/sundae-belgium-sundae.jpg", name:"Belgium Sundae", desc:"Rich Belgian chocolate sundae, layered and topped with love.", tags:["chocolatey","belgian"], price:260, ordersToday:14, ordersWeek:90, ordersAllTime:1320 },
+    { id:"su3", category:"sundae", image:"images/sundae-banana-split-sundae.jpg", name:"Banana Split Sundae", desc:"Banana Split sundae, layered and topped with love.", tags:["fruity","classic"], price:260, ordersToday:13, ordersWeek:84, ordersAllTime:1240 },
+    { id:"su4", category:"sundae", image:"images/sundae-black-currant-sundae.jpg", name:"Black Currant Sundae", desc:"Black Currant sundae, layered and topped with love.", tags:["fruity"], price:260, ordersToday:10, ordersWeek:66, ordersAllTime:970 },
+    { id:"su5", category:"sundae", image:"images/sundae-brownie-sundae.jpg", name:"Brownie Sundae", desc:"Brownie sundae, layered and topped with love.", tags:["chocolatey","indulgent"], price:260, ordersToday:17, ordersWeek:108, ordersAllTime:1590 },
+    { id:"su8", category:"sundae", image:"images/sundae-brookies-death-by-chocolate.jpg", name:"Brookies-Death by Chocolate", desc:"Death by Chocolate, layered and topped with love.", tags:["chocolatey","indulgent"], price:300, ordersToday:19, ordersWeek:122, ordersAllTime:1800 },
+    { id:"su9", category:"sundae", image:"images/sundae-cookie-skillet.jpg", name:"Cookie Skillet", desc:"Cookie Skillet, a lovely dish ready to melt in your mouth.", tags:["crunchy","indulgent"], price:240, ordersToday:19, ordersWeek:182, ordersAllTime:1800 },
+    { id:"su10", category:"sundae", image:"images/sundae-brownie-with-ice-cream.jpg", name:"Brownie with Ice Cream", desc:"Classic everyday flavours — vanilla, chocolate, strawberry and more on your classic brownie.", tags:["classic","creamy"], variants:[{label:"Nutella Spread",price:150},{label:"Biscoff Spread",price:150}], ordersToday:22, ordersWeek:150, ordersAllTime:2400 },
+
+    { id:"sh2", category:"shakes", image:"images/shakes-vanilla.jpg", name:"Vanilla", desc:"Classic creamy vanilla shake.", tags:["classic","creamy"], price:150, ordersToday:14, ordersWeek:92, ordersAllTime:1400 },
+    { id:"sh3", category:"shakes", image:"images/shakes-sensational-strawberry.jpg", name:"Sensational Strawberry", desc:"Sensational Strawberry shake, thick and fruity.", tags:["fruity","creamy"], price:170, ordersToday:12, ordersWeek:80, ordersAllTime:1180 },
+    { id:"sh4", category:"shakes", image:"images/shakes-butter-scotch.jpg", name:"Butter Scotch", desc:"Butter Scotch shake, thick and creamy.", tags:["classic","creamy"], price:150, ordersToday:11, ordersWeek:72, ordersAllTime:1050 },
+    { id:"sh5", category:"shakes", image:"images/shakes-chocolicious.jpg", name:"Chocolicious", desc:"Chocolicious shake, thick and creamy.", tags:["chocolatey"], price:150, ordersToday:16, ordersWeek:104, ordersAllTime:1520 },
+    { id:"sh6", category:"shakes", image:"images/shakes-mango-tornado.jpg", name:"Mango Tornado", desc:"Mango Tornado shake, thick and fruity.", tags:["fruity"], price:150, ordersToday:13, ordersWeek:84, ordersAllTime:1230 },
+    { id:"sh7", category:"shakes", image:"images/shakes-mighty-banana.jpg", name:"Mighty Banana", desc:"Mighty Banana shake, thick and creamy.", tags:["fruity","creamy"], price:150, ordersToday:10, ordersWeek:66, ordersAllTime:970 },
+    { id:"sh8", category:"shakes", image:"images/shakes-honey-and-anjeer.jpg", name:"Honey And Anjeer", desc:"Honey And Anjeer shake, rich and indulgent.", tags:["rich","indulgent"], price:200, ordersToday:7, ordersWeek:46, ordersAllTime:680 },
+    { id:"sh9", category:"shakes", image:"images/shakes-black-currant.jpg", name:"Black Currant", desc:"Black Currant shake, thick and fruity.", tags:["fruity"], price:150, ordersToday:9, ordersWeek:58, ordersAllTime:860 },
+    { id:"sh10", category:"shakes", image:"images/shakes-kitkat.jpg", name:"Kitkat", desc:"Kitkat shake, thick and chocolatey.", tags:["chocolatey"], price:200, ordersToday:15, ordersWeek:98, ordersAllTime:1440 },
+    { id:"sh11", category:"shakes", image:"images/shakes-ferrero.jpg", name:"Ferrero", desc:"Ferrero shake, thick and chocolatey.", tags:["chocolatey","indulgent"], price:200, ordersToday:17, ordersWeek:110, ordersAllTime:1610 },
+    { id:"sh12", category:"shakes", image:"images/shakes-chocolate-oreo.jpg", name:"Chocolate Oreo", desc:"Chocolate Oreo shake, thick and chocolatey.", tags:["chocolatey"], price:200, ordersToday:14, ordersWeek:90, ordersAllTime:1320 },
+    { id:"sh13", category:"shakes", image:"images/shakes-peanut-butter-paradise.jpg", name:"Peanut Butter Paradise", desc:"Peanut Butter Paradise shake, rich and nutty.", tags:["nutty","rich"], price:200, ordersToday:12, ordersWeek:78, ordersAllTime:1150 },
+    { id:"sh14", category:"shakes", image:"images/shakes-red-velvet.jpg", name:"Red Velvet", desc:"Red Velvet shake, thick and creamy.", tags:["classic","creamy"], price:150, ordersToday:11, ordersWeek:70, ordersAllTime:1030 },
+    { id:"sh15", category:"shakes", image:"images/shakes-the-paan.jpg", name:"The Paan", desc:"The Paan shake, a unique classic twist.", tags:["unique","classic"], price:170, ordersToday:6, ordersWeek:40, ordersAllTime:590 },
+    { id:"sh16", category:"shakes", image:"images/shakes-brownie-walnut.jpg", name:"Brownie Walnut", desc:"Brownie Walnut shake, rich and nutty.", tags:["chocolatey","nutty"], price:180, ordersToday:9, ordersWeek:58, ordersAllTime:850 },
+    { id:"sh17", category:"shakes", image:"images/shakes-dryfruit.jpg", name:"Dryfruit", desc:"Dryfruit shake, rich and indulgent.", tags:["rich","nutty"], price:180, ordersToday:8, ordersWeek:52, ordersAllTime:760 },
+    { id:"sh18", category:"shakes", image:"images/shakes-nutella.jpg", name:"Nutella", desc:"Nutella shake, thick and chocolatey.", tags:["chocolatey","indulgent"], price:200, ordersToday:18, ordersWeek:116, ordersAllTime:1700 },
+
+    { id:"d1", category:"desserts", image:"images/desserts-brownie-beauty.jpg", name:"Brownie Beauty", desc:"Warm fudge brownie loaded with ice cream and chocolate sauce.", tags:["chocolatey","indulgent"], price:249, ordersToday:18, ordersWeek:120, ordersAllTime:1900 },
+    { id:"d2", category:"desserts", image:"images/desserts-belgium-pastry-sundae.jpg", name:"Belgium Pastry Sundae", desc:"Layers of Belgian pastry and ice cream for the chocolate lover.", tags:["chocolatey","belgian"], price:249, ordersToday:12, ordersWeek:80, ordersAllTime:1250 },
+    { id:"d3", category:"desserts", image:"images/desserts-hot-chocolate-ice-cream.jpg", name:"Hot Chocolate Ice Cream", desc:"Molten hot chocolate poured over cold, creamy ice cream.", tags:["chocolatey","warm and cold"], price:249, ordersToday:15, ordersWeek:98, ordersAllTime:1500 },
+    { id:"d4", category:"desserts", image:"images/desserts-tutti-frutti-glass.jpeg", name:"Tutti Frutti Glass", desc:"A colourful layered glass of tutti frutti and ice cream.", tags:["fruity","classic"], price:220, ordersToday:9, ordersWeek:58, ordersAllTime:860 },
+
+    { id:"mp1", category:"minipancakes", image:"images/minipancakes-caramel-castle.jpg", name:"Caramel Castle", desc:"Caramel Castle mini pancakes, set of 10.", tags:["sweet","shareable"], price:250, ordersToday:8, ordersWeek:55, ordersAllTime:700 },
+    { id:"mp2", category:"minipancakes", image:"images/minipancakes-oreo-qb-session.jpg", name:"Oreo QB Session", desc:"Oreo QB Session mini pancakes, set of 10.", tags:["chocolatey","shareable"], price:270, ordersToday:13, ordersWeek:86, ordersAllTime:1050 },
+    { id:"mp3", category:"minipancakes", image:"images/minipancakes-nasty-nutella.jpg", name:"Nasty Nutella", desc:"Nasty Nutella mini pancakes, set of 10.", tags:["chocolatey","indulgent"], price:290, ordersToday:17, ordersWeek:110, ordersAllTime:1600 },
+    { id:"mp4", category:"minipancakes", image:"images/minipancakes-brownie-therapy.jpg", name:"Brownie Therapy", desc:"Brownie Therapy mini pancakes, set of 10.", tags:["chocolatey","indulgent"], price:290, ordersToday:10, ordersWeek:68, ordersAllTime:900 },
+    { id:"mp5", category:"minipancakes", image:"images/minipancakes-strawberry-pancakes-stick.jpg", name:"Strawberry & Pancakes Stick", desc:"Strawberry & Pancakes Stick, set of 10.", tags:["fruity","shareable"], price:290, ordersToday:7, ordersWeek:48, ordersAllTime:620 },
+
+    { id:"ss1", category:"softsundae", image:"images/softsundae-black-currant.jpg", name:"Black Currant", desc:"Black Currant soft-serve sundae, silky and light.", tags:["fruity"], price:200, ordersToday:9, ordersWeek:58, ordersAllTime:860 },
+    { id:"ss2", category:"softsundae", image:"images/softsundae-strawberry-jelly.jpg", name:"Strawberry Jelly", desc:"Strawberry Jelly soft-serve sundae, silky and light.", tags:["fruity"], price:220, ordersToday:11, ordersWeek:70, ordersAllTime:1030 },
+    { id:"ss3", category:"softsundae", image:"images/softsundae-dairy-milk.jpg", name:"Dairy Milk", desc:"Dairy Milk soft-serve sundae, silky and light.", tags:["chocolatey"], price:270, ordersToday:14, ordersWeek:90, ordersAllTime:1320 },
+    { id:"ss4", category:"softsundae", image:"images/softsundae-kitkat.jpg", name:"Kitkat", desc:"Kitkat soft-serve sundae, silky and light.", tags:["chocolatey","crunchy"], price:270, ordersToday:15, ordersWeek:96, ordersAllTime:1410 },
+    { id:"ss5", category:"softsundae", image:"images/softsundae-brownie-blast.jpg", name:"Brownie Blast", desc:"Brownie Blast soft-serve sundae, silky and indulgent.", tags:["chocolatey","indulgent"], price:300, ordersToday:16, ordersWeek:102, ordersAllTime:1500 },
+    { id:"ss6", category:"softsundae", image:"images/softsundae-nutella-rocher.jpg", name:"Nutella Rocher", desc:"Nutella Rocher soft-serve sundae, silky and indulgent.", tags:["chocolatey","indulgent"], price:320, ordersToday:18, ordersWeek:116, ordersAllTime:1700 },
+    { id:"ss7", category:"softsundae", image:"images/softsundae-biscoff.jpg", name:"Biscoff", desc:"Biscoff soft-serve sundae, silky and indulgent.", tags:["indulgent","sweet"], price:320, ordersToday:13, ordersWeek:84, ordersAllTime:1240 },
+
+    { id:"ns1", category:"nitrogensundae", image:"images/nitrogensundae-strawberry.jpg", name:"Strawberry", desc:"Strawberry sundae, flash-frozen tableside with liquid nitrogen.", tags:["fruity","unique"], price:290, ordersToday:10, ordersWeek:64, ordersAllTime:940 },
+    { id:"ns2", category:"nitrogensundae", image:"images/nitrogensundae-mango.jpg", name:"Mango", desc:"Mango sundae, flash-frozen tableside with liquid nitrogen.", tags:["fruity","unique"], price:300, ordersToday:12, ordersWeek:78, ordersAllTime:1150 },
+    { id:"ns3", category:"nitrogensundae", image:"images/nitrogensundae-bubble-gum.jpg", name:"Bubble Gum", desc:"Bubble Gum sundae, flash-frozen tableside with liquid nitrogen.", tags:["fun","unique"], price:300, ordersToday:14, ordersWeek:90, ordersAllTime:1320 },
+    { id:"ns4", category:"nitrogensundae", image:"images/nitrogensundae-miss-brownie.jpg", name:"Miss Brownie", desc:"Miss Brownie sundae, flash-frozen tableside with liquid nitrogen.", tags:["chocolatey","unique"], price:320, ordersToday:11, ordersWeek:70, ordersAllTime:1020 },
+    { id:"ns5", category:"nitrogensundae", image:"images/nitrogensundae-lotus-biscoff.jpg", name:"Lotus Biscoff", desc:"Lotus Biscoff sundae, flash-frozen tableside with liquid nitrogen.", tags:["indulgent","unique"], price:320, ordersToday:15, ordersWeek:96, ordersAllTime:1410 },
+    { id:"ns6", category:"nitrogensundae", image:"images/nitrogensundae-kitkat-nutella.jpg", name:"Kitkat Nutella", desc:"Kitkat Nutella sundae, flash-frozen tableside with liquid nitrogen.", tags:["chocolatey","unique"], price:320, ordersToday:17, ordersWeek:108, ordersAllTime:1590 },
+
+    { id:"wf1", category:"waffles", image:"images/waffles-naked-nutella.jpg", name:"Naked Nutella", desc:"Naked Nutella waffle, crisp and generously topped.", tags:["chocolatey"], variants:[{label:"Belgian",price:250},{label:"Bubble",price:220},{label:"Stick",price:200}], ordersToday:16, ordersWeek:104, ordersAllTime:1520 },
+    { id:"wf2", category:"waffles", image:"images/waffles-banana-nutella.jpg", name:"Banana Nutella", desc:"Banana Nutella waffle, crisp and generously topped.", tags:["chocolatey","fruity"], variants:[{label:"Belgian",price:250},{label:"Bubble",price:220},{label:"Stick",price:200}], ordersToday:19, ordersWeek:126, ordersAllTime:1950 },
+    { id:"wf3", category:"waffles", image:"images/waffles-too-much-chocolate.jpg", name:"Too Much Chocolate", desc:"Too Much Chocolate waffle, crisp and generously topped.", tags:["chocolatey","indulgent"], variants:[{label:"Belgian",price:250},{label:"Bubble",price:220},{label:"Stick",price:200}], ordersToday:15, ordersWeek:96, ordersAllTime:1410 },
+    { id:"wf4", category:"waffles", image:"images/waffles-fresh-fruit.jpg", name:"Fresh Fruit", desc:"Fresh Fruit waffle, crisp and generously topped.", tags:["fruity"], variants:[{label:"Belgian",price:270},{label:"Bubble",price:250},{label:"Stick",price:220}], ordersToday:10, ordersWeek:64, ordersAllTime:940 },
+    { id:"wf5", category:"waffles", image:"images/waffles-kitkat-oreo.jpg", name:"Kitkat Oreo", desc:"Kitkat Oreo waffle, crisp and generously topped.", tags:["chocolatey","crunchy"], variants:[{label:"Belgian",price:250},{label:"Bubble",price:220},{label:"Stick",price:200}], ordersToday:13, ordersWeek:84, ordersAllTime:1230 },
+    { id:"wf6", category:"waffles", image:"images/waffles-banana-caramel.jpg", name:"Banana Caramel", desc:"Banana Caramel waffle, crisp and generously topped.", tags:["fruity","sweet"], variants:[{label:"Belgian",price:200},{label:"Bubble",price:180},{label:"Stick",price:180}], ordersToday:11, ordersWeek:70, ordersAllTime:1030 },
+    { id:"wf7", category:"waffles", image:"images/waffles-ferrero-rocher.jpg", name:"Ferrero Rocher", desc:"Ferrero Rocher waffle, crisp and generously topped.", tags:["chocolatey","indulgent"], variants:[{label:"Belgian",price:270},{label:"Bubble",price:250},{label:"Stick",price:220}], ordersToday:17, ordersWeek:110, ordersAllTime:1610 },
+    { id:"wf8", category:"waffles", image:"images/waffles-salted-caramel.jpg", name:"Salted Caramel", desc:"Salted Caramel waffle, crisp and generously topped.", tags:["sweet","classic"], variants:[{label:"Belgian",price:250},{label:"Bubble",price:220},{label:"Stick",price:200}], ordersToday:12, ordersWeek:78, ordersAllTime:1150 },
+    { id:"wf9", category:"waffles", image:"images/waffles-triple-chocolate.jpg", name:"Triple Chocolate", desc:"Triple Chocolate waffle, crisp and generously topped.", tags:["chocolatey","indulgent"], variants:[{label:"Belgian",price:250},{label:"Bubble",price:220},{label:"Stick",price:200}], ordersToday:14, ordersWeek:90, ordersAllTime:1320 },
+    { id:"wf10", category:"waffles", image:"images/waffles-blueberry-crumble.jpg", name:"Blueberry Crumble", desc:"Blueberry Crumble waffle, crisp and generously topped.", tags:["fruity"], variants:[{label:"Belgian",price:200},{label:"Bubble",price:180},{label:"Stick",price:180}], ordersToday:9, ordersWeek:58, ordersAllTime:860 },
+    { id:"wf11", category:"waffles", image:"images/waffles-dark-fantasy.jpg", name:"Dark Fantasy", desc:"Dark Fantasy waffle, crisp and generously topped.", tags:["chocolatey","rich"], variants:[{label:"Belgian",price:250},{label:"Bubble",price:220},{label:"Stick",price:200}], ordersToday:8, ordersWeek:52, ordersAllTime:760 },
+    { id:"wf12", category:"waffles", image:"images/waffles-all-velvet.jpg", name:"All Velvet", desc:"All Velvet waffle, crisp and generously topped.", tags:["classic","sweet"], variants:[{label:"Belgian",price:250},{label:"Bubble",price:220},{label:"Stick",price:200}], ordersToday:10, ordersWeek:64, ordersAllTime:940 },
+    { id:"wf13", category:"waffles", image:"images/waffles-the-milky-way.jpg", name:"The Milky Way", desc:"The Milky Way waffle, crisp and generously topped.", tags:["chocolatey","sweet"], variants:[{label:"Belgian",price:250},{label:"Bubble",price:220},{label:"Stick",price:200}], ordersToday:11, ordersWeek:70, ordersAllTime:1030 },
+    { id:"wf14", category:"waffles", image:"images/waffles-lotus-biscoff.jpg", name:"Lotus Biscoff", desc:"Lotus Biscoff waffle, crisp and generously topped.", tags:["indulgent","sweet"], variants:[{label:"Belgian",price:290},{label:"Bubble",price:270},{label:"Stick",price:250}], ordersToday:16, ordersWeek:102, ordersAllTime:1500 },
+    { id:"wf15", category:"waffles", image:"images/waffles-brownie-blast.jpg", name:"Brownie Blast", desc:"Brownie Blast waffle, crisp and generously topped.", tags:["chocolatey","indulgent"], variants:[{label:"Belgian",price:290},{label:"Bubble",price:270},{label:"Stick",price:250}], ordersToday:18, ordersWeek:114, ordersAllTime:1670 },
+
+    { id:"mk1", category:"mocktails", image:"images/mocktails-virgin-mojito.jpg", name:"Virgin Mojito", desc:"Lime, mint and soda, shaken fresh.", tags:["refreshing","citrusy"], price:150, ordersToday:16, ordersWeek:104, ordersAllTime:1600 },
+    { id:"mk2", category:"mocktails", image:"images/mocktails-pink-lady.jpg", name:"Pink Lady", desc:"A fruity pink blend, sweet and refreshing.", tags:["fruity","refreshing"], price:180, ordersToday:12, ordersWeek:78, ordersAllTime:1150 },
+    { id:"mk3", category:"mocktails", image:"images/mocktails-mango-mule.jpg", name:"Mango Mule", desc:"Mango with a spiced ginger kick.", tags:["fruity","spiced"], price:150, ordersToday:9, ordersWeek:60, ordersAllTime:850 },
+    { id:"mk4", category:"mocktails", image:"images/mocktails-green-apple.jpg", name:"Green Apple", desc:"Crisp green apple, tart and refreshing.", tags:["fruity","refreshing"], price:180, ordersToday:8, ordersWeek:52, ordersAllTime:760 },
+    { id:"mk5", category:"mocktails", image:"images/mocktails-blue-sky.jpg", name:"Blue Sky", desc:"A cool blue citrus blend.", tags:["citrusy","refreshing"], price:150, ordersToday:10, ordersWeek:64, ordersAllTime:940 },
+    { id:"mk6", category:"mocktails", image:"images/mocktails-watermelon-mojito.jpg", name:"Watermelon Mojito", desc:"Watermelon, lime and mint, shaken fresh.", tags:["fruity","refreshing"], price:180, ordersToday:14, ordersWeek:90, ordersAllTime:1320 },
+
+    { id:"ws1", category:"wafflesandwich", image:"images/wafflesandwich-biscoff.jpg", name:"Biscoff", desc:"Biscoff waffle sandwich, warm and gooey.", tags:["indulgent","sweet"], price:180, ordersToday:8, ordersWeek:54, ordersAllTime:780 },
+    { id:"ws2", category:"wafflesandwich", image:"images/wafflesandwich-nutella.jpg", name:"Nutella", desc:"Nutella waffle sandwich, warm and gooey.", tags:["chocolatey","sweet"], price:150, ordersToday:11, ordersWeek:72, ordersAllTime:1020 },
+    { id:"ws3", category:"wafflesandwich", image:"images/wafflesandwich-kitkat.jpg", name:"Kitkat", desc:"Kitkat waffle sandwich, warm and gooey.", tags:["chocolatey","crunchy"], price:150, ordersToday:9, ordersWeek:58, ordersAllTime:860 },
+    { id:"ws4", category:"wafflesandwich", image:"images/wafflesandwich-caramel.jpg", name:"Caramel", desc:"Caramel waffle sandwich, warm and gooey.", tags:["sweet","classic"], price:150, ordersToday:7, ordersWeek:46, ordersAllTime:680 },
+    { id:"ws5", category:"wafflesandwich", image:"images/wafflesandwich-triple-chocolate.jpg", name:"Triple Chocolate", desc:"Triple Chocolate waffle sandwich, warm and gooey.", tags:["chocolatey","indulgent"], price:150, ordersToday:10, ordersWeek:64, ordersAllTime:940 },
+    { id:"ws6", category:"wafflesandwich", image:"images/wafflesandwich-too-much-chocolate.jpg", name:"Too Much Chocolate", desc:"Too Much Chocolate waffle sandwich, warm and gooey.", tags:["chocolatey","indulgent"], price:150, ordersToday:12, ordersWeek:78, ordersAllTime:1150 },
+    { id:"ws7", category:"wafflesandwich", image:"images/wafflesandwich-red-velvet-with-white-chocolate.jpg", name:"Red Velvet with White Chocolate", desc:"Red Velvet with White Chocolate waffle sandwich, warm and gooey.", tags:["classic","sweet"], price:150, ordersToday:9, ordersWeek:58, ordersAllTime:860 },
+
+    { id:"mp6", category:"minipancakes", image:"images/minipancakes-red-velvet-pancake.jpg", name:"Red Velvet Pancake", desc:"Fluffy Red Velvet pancakes, rich and indulgent.", tags:["classic","sweet"], price:290, ordersToday:10, ordersWeek:64, ordersAllTime:940 },
+    { id:"mp7", category:"minipancakes", image:"images/minipancakes-dark-fantasy-pancake.jpg", name:"Dark Fantasy Pancake", desc:"Dark Fantasy pancakes, deep chocolate and indulgent.", tags:["chocolatey","indulgent"], price:290, ordersToday:12, ordersWeek:78, ordersAllTime:1150 },
+
+    { id:"bt1", category:"bobatea", image:"images/bobatea-coffee-boba.jpg", name:"Coffee Boba", desc:"Coffee-based boba tea with chewy tapioca pearls.", tags:["coffee","chewy"], price:150, ordersToday:11, ordersWeek:70, ordersAllTime:1020 },
+    { id:"bt2", category:"bobatea", image:"images/bobatea-blueberry-boba.jpg", name:"Blueberry Boba", desc:"Blueberry boba tea with chewy tapioca pearls.", tags:["fruity","chewy"], price:150, ordersToday:13, ordersWeek:84, ordersAllTime:1230 },
+
+    { id:"cc1", category:"coldcoffee", image:"images/coldcoffee-classic-cold-coffee.jpg", name:"Classic Cold Coffee", desc:"Chilled, frothy coffee, classic style.", tags:["coffee","refreshing"], price:100, ordersToday:20, ordersWeek:135, ordersAllTime:2100 },
+    { id:"cc2", category:"coldcoffee", image:"images/coldcoffee-vietnamese-coffee.jpg", name:"Vietnamese Coffee", desc:"Vietnamese-style iced coffee, bold and sweet. (price placeholder — confirm with owner)", tags:["coffee","bold"], price:100, ordersToday:9, ordersWeek:58, ordersAllTime:860 },
+    { id:"cc3", category:"coldcoffee", image:"images/coldcoffee-spanish-iced-latte.jpg", name:"Spanish Iced Latte", desc:"Spanish-style iced latte, smooth and creamy. (price placeholder — confirm with owner)", tags:["coffee","creamy"], price:100, ordersToday:8, ordersWeek:52, ordersAllTime:760 },
+  ];
+
+  let state = {
+    view: "browse",
+    category: "scoops",
+    searchQuery: "",
+    trendPeriod: "today",
+    cart: {},
+    variantChoice: {},
+    cartOpen: false,
+    billCalculated: false,
+    selectedId: null,
+    surpriseMode: false,
+  };
+
+  function catColor(id) { const c = CATEGORIES.find(c => c.id === id); return c ? c.color : "#E8407D"; }
+  function getVariants(item) { return item.variants || [{ label: "", price: item.price }]; }
+  function getVariantIdx(id) { return state.variantChoice[id] || 0; }
+  function setVariant(id, idx) { state.variantChoice[id] = idx; renderAll(); }
+  function cartKey(id, vIdx) { return id + "::" + (vIdx || 0); }
+  function priceFor(item, vIdx) { return getVariants(item)[vIdx || 0].price; }
+
+  function getCartEntries() {
+    return Object.keys(state.cart).map(key => {
+      const parts = key.split("::");
+      const id = parts[0], vIdx = parseInt(parts[1] || "0", 10);
+      const item = ITEMS.find(i => i.id === id);
+      if (!item) return null;
+      return { item, vIdx, qty: state.cart[key], unitPrice: priceFor(item, vIdx), key };
+    }).filter(Boolean);
+  }
+
+  function dishArtHTML(item, size) {
+    const color = catColor(item.category);
+    if (item.image) {
+      return `<img src="${item.image}" alt="${item.name}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:2px solid ${color};flex-shrink:0;" />`;
+    }
+    const cat = CATEGORIES.find(c => c.id === item.category);
+    const icon = cat ? cat.icon : "fa-ice-cream";
+    return `<div style="width:${size}px;height:${size}px;border:2px dashed ${color};background-color:var(--sm-card);background-image:radial-gradient(${color}33 1.4px, transparent 1.4px);background-size:9px 9px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0;">
+      <i class="fa-solid ${icon}" style="color:${color};font-size:${size*0.38}px"></i>
+    </div>`;
+  }
+
+  function variantToggleHTML(item) {
+    const variants = getVariants(item);
+    if (variants.length < 2) return "";
+    const active = getVariantIdx(item.id);
+    return `
+      <div class="variant-toggle" onclick="event.stopPropagation()">
+        ${variants.map((v, i) => `<button class="variant-btn ${i===active?'variant-active':''}" onclick="setVariant('${item.id}',${i})">${v.label} · ₹${v.price}</button>`).join("")}
+      </div>
+    `;
+  }
+
+  function matchesQuery(item, q) {
+    const nq = q.toLowerCase().trim();
+    if (!nq) return true;
+    if (item.name.toLowerCase().includes(nq)) return true;
+    if (item.desc.toLowerCase().includes(nq)) return true;
+    if (item.tags.some(t => t.toLowerCase().includes(nq))) return true;
+    if (nq.includes("today") || nq.includes("best today")) {
+      const topToday = [...ITEMS].sort((a,b)=>b.ordersToday-a.ordersToday).slice(0,5).map(i=>i.id);
+      if (topToday.includes(item.id)) return true;
+    }
+    if (nq.includes("trending") || nq.includes("popular")) {
+      const topAll = [...ITEMS].sort((a,b)=>b.ordersAllTime-a.ordersAllTime).slice(0,5).map(i=>i.id);
+      if (topAll.includes(item.id)) return true;
+    }
+    return false;
+  }
+
+  function trendKey(period) {
+    return period === "today" ? "ordersToday" : period === "week" ? "ordersWeek" : "ordersAllTime";
+  }
+  function trendLabelText(period) {
+    return period === "today" ? "today" : period === "week" ? "this week" : "all-time";
+  }
+
+  function dishCardHTML(item, opts = {}) {
+    const vIdx = getVariantIdx(item.id);
+    const qty = state.cart[cartKey(item.id, vIdx)] || 0;
+    const rank = opts.rank || null;
+    const trendCount = opts.trendCount != null ? opts.trendCount : null;
+    const trendLbl = opts.trendLabel || "";
+    const displayPrice = priceFor(item, vIdx);
+    return `
+      <div class="card" onclick="openItem('${item.id}')">
+        ${rank ? `<span class="rank-badge ${rank===1?'gold':''}">#${rank}</span>` : ""}
+        <div class="card-body">
+          ${dishArtHTML(item, 58)}
+          <div class="card-info">
+            <h3 class="font-display">${item.name}</h3>
+            <p class="desc">${item.desc}</p>
+            ${trendCount != null ? `<div class="trend-line"><i class="fa-solid fa-fire" style="font-size:10px;"></i> ${trendCount} orders ${trendLbl}</div>` : `
+              <div class="tag-row">${item.tags.slice(0,3).map(t => `<span class="tag-chip">${t}</span>`).join("")}</div>
+            `}
+          </div>
+        </div>
+        ${variantToggleHTML(item)}
+        <div class="price-row">
+          <span class="price">₹${displayPrice}</span>
+          ${qty > 0 ? `
+            <div class="stepper" onclick="event.stopPropagation()">
+              <button onclick="removeItem('${item.id}',${vIdx})"><i class="fa-solid fa-minus icon-on-elevated" style="font-size:12px;"></i></button>
+              <span>${qty}</span>
+              <button onclick="addItem('${item.id}',${vIdx})"><i class="fa-solid fa-plus icon-on-elevated" style="font-size:12px;"></i></button>
+            </div>
+          ` : `
+            <button class="add-btn" onclick="event.stopPropagation(); addItem('${item.id}',${vIdx})"><i class="fa-solid fa-plus icon-on-elevated" style="font-size:12px;"></i> Add</button>
+          `}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderHeaderNav() {
+    const searchActive = !!state.searchQuery;
+    document.getElementById("viewTabs").innerHTML = `
+      <button class="view-tab ${state.view==='browse' && !searchActive ? 'view-tab-active':'view-tab-inactive'}" onclick="setView('browse')"><i class="fa-solid fa-ice-cream" style="font-size:11px;"></i> Browse Menu</button>
+      <button class="view-tab ${state.view==='trending' && !searchActive ? 'view-tab-active':'view-tab-inactive'}" onclick="setView('trending')"><i class="fa-solid fa-fire" style="font-size:11px;"></i> Trending</button>
+    `;
+
+    const subNav = document.getElementById("subNav");
+    if (searchActive) { subNav.innerHTML = ""; return; }
+
+    if (state.view === "browse") {
+      subNav.innerHTML = `<div class="pills" id="pills"></div>`;
+      document.getElementById("pills").innerHTML = CATEGORIES.map(cat => `
+        <button class="pill ${state.category === cat.id ? "pill-active" : "pill-inactive"}" onclick="setCategory('${cat.id}')">
+          <i class="fa-solid ${cat.icon}" style="font-size:13px;"></i>
+          <span>${cat.label}</span>
+        </button>
+      `).join("");
+    } else {
+      subNav.innerHTML = `
+        <div class="trend-period-row">
+          <button class="trend-period ${state.trendPeriod==='today'?'trend-period-active':''}" onclick="setTrendPeriod('today')">Last 24 Hours</button>
+          <button class="trend-period ${state.trendPeriod==='week'?'trend-period-active':''}" onclick="setTrendPeriod('week')">This Week</button>
+          <button class="trend-period ${state.trendPeriod==='all'?'trend-period-active':''}" onclick="setTrendPeriod('all')">All Time</button>
+        </div>
+      `;
+    }
+  }
+
+  function renderMainContent() {
+    const titleEl = document.getElementById("catTitle");
+    const subEl = document.getElementById("catSub");
+    const grid = document.getElementById("menuGrid");
+    let items = [];
+    let rankMode = false;
+    const period = state.trendPeriod;
+
+    if (state.searchQuery) {
+      items = ITEMS.filter(i => matchesQuery(i, state.searchQuery));
+      titleEl.textContent = "Search Results";
+      subEl.textContent = `"${state.searchQuery}" · ${items.length} item${items.length===1?"":"s"} found`;
+    } else if (state.view === "trending") {
+      const key = trendKey(period);
+      items = [...ITEMS].sort((a,b) => b[key]-a[key]).slice(0,8);
+      rankMode = true;
+      titleEl.textContent = "Trending";
+      subEl.textContent = period==="today" ? "Most ordered in the last 24 hours" : period==="week" ? "Most ordered this week" : "All-time favourites";
+    } else {
+      const cat = CATEGORIES.find(c => c.id === state.category) || CATEGORIES[0];
+      items = ITEMS.filter(i => i.category === state.category);
+      titleEl.textContent = cat.label;
+      subEl.textContent = "";
+    }
+
+    if (items.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <p>No items match "${state.searchQuery}". Try "chocolatey", "fruity", "best today" or an item name.</p>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = items.map((item, idx) => {
+      if (!rankMode) return dishCardHTML(item);
+      const key = trendKey(period);
+      return dishCardHTML(item, { rank: idx+1, trendCount: item[key], trendLabel: trendLabelText(period) });
+    }).join("");
+  }
+
+  function renderFab() {
+    const entries = getCartEntries();
+    const count = entries.reduce((s,e) => s+e.qty, 0);
+    const subtotal = entries.reduce((s,e) => s + e.qty*e.unitPrice, 0);
+    const fab = document.getElementById("fab");
+    fab.style.display = (count > 0 && !state.cartOpen) ? "flex" : "none";
+    document.getElementById("fabCount").textContent = count;
+    document.getElementById("fabTotal").textContent = "₹" + subtotal;
+  }
+
+  function renderModal() {
+    const wrap = document.getElementById("modalWrap");
+    const backdrop = document.getElementById("modalBackdrop");
+    const item = ITEMS.find(i => i.id === state.selectedId);
+    if (!item) { wrap.classList.remove("show"); backdrop.classList.remove("show"); return; }
+    wrap.classList.add("show"); backdrop.classList.add("show");
+    const vIdx = getVariantIdx(item.id);
+    const qty = state.cart[cartKey(item.id, vIdx)] || 0;
+    const displayPrice = priceFor(item, vIdx);
+    document.getElementById("modalContent").innerHTML = `
+      <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark" style="font-size:15px;"></i></button>
+      ${state.surpriseMode ? `<div class="modal-ribbon">✨ SURPRISE PICK</div>` : ""}
+      <div class="modal-art-wrap">${dishArtHTML(item, 96)}</div>
+      <div class="modal-header"><h2 class="font-display">${item.name}</h2></div>
+      <p class="modal-desc text-soft">${item.desc}</p>
+      <div class="modal-price-row"><span class="modal-price">₹${displayPrice}</span></div>
+      ${getVariants(item).length > 1 ? `<div style="margin-top:14px;">${variantToggleHTML(item)}</div>` : ""}
+      ${qty > 0 ? `
+        <div class="modal-stepper">
+          <button onclick="removeItem('${item.id}',${vIdx})"><i class="fa-solid fa-minus icon-on-elevated"></i></button>
+          <span>${qty} added</span>
+          <button onclick="addItem('${item.id}',${vIdx})"><i class="fa-solid fa-plus icon-on-elevated"></i></button>
+        </div>
+      ` : `
+        <button class="modal-add-btn" onclick="addItem('${item.id}',${vIdx})"><i class="fa-solid fa-plus icon-on-elevated" style="font-size:13px;"></i> Add to Order</button>
+      `}
+    `;
+  }
+
+  function renderDrawer() {
+    const drawer = document.getElementById("drawer");
+    const backdrop = document.getElementById("cartBackdrop");
+    drawer.classList.toggle("open", state.cartOpen);
+    backdrop.classList.toggle("show", state.cartOpen);
+
+    const entries = getCartEntries();
+    const subtotal = entries.reduce((s,e) => s + e.qty*e.unitPrice, 0);
+    const body = document.getElementById("drawerBody");
+
+    if (entries.length === 0) {
+      body.innerHTML = `
+        <div class="empty-cart">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <p>Your order is empty. Add something tasty from the menu.</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (state.billCalculated) {
+      body.innerHTML = `
+        ${entries.map(e => {
+          const variants = getVariants(e.item);
+          const vLabel = variants.length > 1 ? ` (${variants[e.vIdx].label})` : "";
+          return `
+          <div class="cart-row">
+            <div style="flex:1;">
+              <p class="name">${e.item.name}${vLabel}</p>
+              <p class="unit">₹${e.unitPrice} × ${e.qty}</p>
+            </div>
+            <span class="line-total">₹${e.unitPrice * e.qty}</span>
+          </div>
+        `; }).join("")}
+        <div class="drawer-divider"></div>
+        <div class="subtotal-row"><span>TOTAL TO PAY</span><span>₹${subtotal}</span></div>
+        <p class="bill-note">Please pay this amount at the counter.</p>
+        <button class="send-btn" onclick="editOrder()">Edit Order</button>
+      `;
+      return;
+    }
+
+    body.innerHTML = `
+      ${entries.map(e => {
+        const variants = getVariants(e.item);
+        const vLabel = variants.length > 1 ? ` (${variants[e.vIdx].label})` : "";
+        return `
+        <div class="cart-row">
+          <div style="flex:1;">
+            <p class="name">${e.item.name}${vLabel}</p>
+            <p class="unit">₹${e.unitPrice} × ${e.qty}</p>
+          </div>
+          <div class="cart-stepper">
+            <button onclick="removeItem('${e.item.id}',${e.vIdx})"><i class="fa-solid fa-minus" style="font-size:11px;"></i></button>
+            <span>${e.qty}</span>
+            <button onclick="addItem('${e.item.id}',${e.vIdx})"><i class="fa-solid fa-plus" style="font-size:11px;"></i></button>
+          </div>
+          <span class="line-total">₹${e.unitPrice * e.qty}</span>
+        </div>
+      `; }).join("")}
+      <div class="drawer-divider"></div>
+      <div class="subtotal-row"><span>SUBTOTAL</span><span>₹${subtotal}</span></div>
+      <p class="bill-note">&nbsp;</p>
+      <button class="send-btn" onclick="calculateBill()">Calculate Bill</button>
+    `;
+  }
+
+  function renderAll() {
+    const themeKey = (state.searchQuery || state.view === "trending") ? "scoops" : state.category;
+    applyTheme(themeKey);
+    renderHeaderNav();
+    renderMainContent();
+    renderFab();
+    renderModal();
+    renderDrawer();
+  }
+
+  function setView(v) {
+    state.view = v;
+    state.searchQuery = "";
+    document.getElementById("searchInput").value = "";
+    document.getElementById("searchClearBtn").style.display = "none";
+    renderAll();
+  }
+  function setCategory(id) {
+    state.category = id;
+    renderAll();
+    // Keep the just-selected category pill in view instead of the row snapping back to the start.
+    const activeBtn = document.querySelector(".pill-active");
+    if (activeBtn) activeBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }
+  function setTrendPeriod(p) { state.trendPeriod = p; renderAll(); }
+  function handleSearch(v) {
+    state.searchQuery = v;
+    document.getElementById("searchClearBtn").style.display = v ? "block" : "none";
+    renderAll();
+  }
+  function clearSearch() {
+    state.searchQuery = "";
+    document.getElementById("searchInput").value = "";
+    document.getElementById("searchClearBtn").style.display = "none";
+    renderAll();
+  }
+  function addItem(id, vIdx) {
+    const key = cartKey(id, vIdx != null ? vIdx : getVariantIdx(id));
+    state.cart[key] = (state.cart[key] || 0) + 1;
+    renderAll();
+  }
+  function removeItem(id, vIdx) {
+    const key = cartKey(id, vIdx != null ? vIdx : getVariantIdx(id));
+    if (state.cart[key] <= 1) delete state.cart[key]; else state.cart[key]--;
+    renderAll();
+  }
+  function openItem(id, surprise) {
+    state.selectedId = id;
+    state.surpriseMode = !!surprise;
+    renderAll();
+  }
+  function closeModal() { state.selectedId = null; state.surpriseMode = false; renderAll(); }
+  function surpriseMe() {
+    const idx = Math.floor(Math.random() * ITEMS.length);
+    openItem(ITEMS[idx].id, true);
+  }
+  function toggleCart(open) { state.cartOpen = open; renderAll(); }
+  function calculateBill() { state.billCalculated = true; renderAll(); }
+  function editOrder() { state.billCalculated = false; renderAll(); }
+
+  loadMenuFromSheet();
+</script>
+</body>
+</html>
